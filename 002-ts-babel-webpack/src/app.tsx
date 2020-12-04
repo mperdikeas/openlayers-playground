@@ -43,8 +43,11 @@ export default class App extends React.Component<Props, LocalState> {
         })
       ],
       view: new View({
-        center: [0, 0],
-        zoom: 0
+        /* If the projection is not specified, the default projection is Spherical Mercator (EPSG:3857),
+         * with meters as map units.
+         */
+        center: [5*1000*1000, 5*1000*1000],
+        zoom: 6
       })
     });
     console.debug('map created: ', this.map);

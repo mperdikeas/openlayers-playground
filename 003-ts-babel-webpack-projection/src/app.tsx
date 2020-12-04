@@ -63,9 +63,12 @@ export default class App extends React.Component<Props, LocalState> {
     return (
       <>
         <div>
-          Provenance: <a href='https://openlayers.org/en/latest/doc/tutorials/raster-reprojection.html'>https://openlayers.org/en/latest/doc/tutorials/raster-reprojection.html</a>
+          <p>
+            Provenance: <a href='https://openlayers.org/en/latest/doc/tutorials/raster-reprojection.html'>https://openlayers.org/en/latest/doc/tutorials/raster-reprojection.html</a>
+          </p>
           <p>
             <b>NB:</b> On December 4th when I tried this, I was getting net::ERR_CONNECTION_TIMED_OUT
+          </p>
         </div>
         <div id='map' style={{width: this.state.width || '100%'
                             , height: (this.state.height?`${this.state.height - 100}px`:'400px')}}>

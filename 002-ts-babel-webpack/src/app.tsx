@@ -58,9 +58,14 @@ export default class App extends React.Component<Props, LocalState> {
 
   render = () => {
     return (
-      <div id='map' style={{width: this.state.width || '100%'
-                          , height: (this.state.height?`${this.state.height - 100}px`:'400px')}}>
-      </div>
+      <>
+        <div>
+          Provenance: <a href='https://openlayers.org/en/latest/doc/tutorials/bundle.html'>https://openlayers.org/en/latest/doc/tutorials/bundle.html</a>
+        </div>
+        <div id='map' style={{width: this.state.width || '100%'
+                            , height: (this.state.height?`${this.state.height - 100}px`:'400px')}}>
+        </div>
+      </>
     );
   }
 }

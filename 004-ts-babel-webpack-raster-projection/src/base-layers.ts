@@ -113,48 +113,47 @@ fetch(urlA)
     .then(function (response) {
         return response.text();
     })
-        .then(function (text) {
-            console.log('URL A: ', text);
+    .then(function (text) {
         var result = parser.read(text);
+        console.log(JSON.stringify(result));
         var options = optionsFromCapabilities(result, {
             layer: 'OSM_Land_Mask',
             matrixSet: 'EPSG3413_250m',
         });
+        console.log('options are: ', options);
         options.crossOrigin = '';
         options.projection = 'EPSG:3413';
         options.wrapX = false;
         overlay_layers[OverlayLayerName.WMTS_3413].setSource(new WMTS(options));
     })
-        .catch( (error) => {
-            console.error(error);
-        });
+    .catch( (error) => {
+        console.error(error);
+    });
 }
 
 
-
 {
-    var urlB =
-        'https://tiles.arcgis.com/tiles/qHLhLQrcvEnxjtPr/arcgis/rest/services/OS_Open_Raster/MapServer/WMTS';
-    fetch(urlB)
-        .then(function (response) {
-            return response.text();
-        })
-        .then(function (text) {
-            console.log('URL B: ', text);
-            var result = parser.read(text);
-            var options = optionsFromCapabilities(result, {
-                layer: 'OS_Open_Raster',
-            });
-            options.attributions =
-                'Contains OS data © Crown Copyright and database right 2019';
-            options.crossOrigin = '';
-            options.projection = 'EPSG:27700';
-            options.wrapX = false;
-            overlay_layers[OverlayLayerName.BNG].setSource(new WMTS(options));
-        })
-        .catch( (error) => {
-            console.error(error);
+var urlB =
+    'https://tiles.arcgis.com/tiles/qHLhLQrcvEnxjtPr/arcgis/rest/services/OS_Open_Raster/MapServer/WMTS';
+fetch(urlB)
+    .then(function (response) {
+        return response.text();
+    })
+    .then(function (text) {
+        var result = parser.read(text);
+        var options = optionsFromCapabilities(result, {
+            layer: 'OS_Open_Raster',
         });
+        options.attributions =
+            'Contains OS data © Crown Copyright and database right 2019';
+        options.crossOrigin = '';
+        options.projection = 'EPSG:27700';
+        options.wrapX = false;
+        overlay_layers[OverlayLayerName.BNG].setSource(new WMTS(options));
+    })
+    .catch( (error) => {
+        console.error(error);
+    });
 }
 
 function resolutions(): number[] {

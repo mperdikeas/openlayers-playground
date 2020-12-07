@@ -1,0 +1,15 @@
+node_modules/
+dist/bundle.js
+dist/bundle.js.map
+dist/index.html
+dist/src
+dist/*.zip
+dist/oriaota.zip
+dist/resources/
+npm-debug.log*
+lib/
+*.war
+build.xml.*.log
+.env.*
+dist/
+.cache/

@@ -116,7 +116,7 @@ fetch(urlA)
     .then(function (text) {
         var result = parser.read(text);
         console.log(JSON.stringify(result));
-        var options = optionsFromCapabilities(result, {
+        var options = optionsFromCapabilities(result, { // sse-1607360049
             layer: 'OSM_Land_Mask',
             matrixSet: 'EPSG3413_250m',
         });
@@ -141,7 +141,7 @@ fetch(urlB)
     })
     .then(function (text) {
         var result = parser.read(text);
-        var options = optionsFromCapabilities(result, {
+        var options = optionsFromCapabilities(result, { // sse-1607360049
             layer: 'OS_Open_Raster',
         });
         options.attributions =

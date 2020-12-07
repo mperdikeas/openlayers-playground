@@ -8,7 +8,7 @@
     "parcel": "1.11.0"
   },
   "scripts": {
-    "start": "parcel index.html",
-    "build": "parcel build --experimental-scope-hoisting --public-url . index.html"
+    "start": "parcel --no-cache index.html",
+    "build": "parcel build --no-cache --experimental-scope-hoisting --public-url . index.html"
   }
 }

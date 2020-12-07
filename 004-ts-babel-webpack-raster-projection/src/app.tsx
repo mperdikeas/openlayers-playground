@@ -4,20 +4,9 @@ import {throttle} from 'lodash';
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
-//import TileGrid from 'ol/tilegrid/TileGrid';
+
 import TileLayer from 'ol/layer/Tile';
 import View from 'ol/View';
-/*import Collection from 'ol/Collection';
-import BaseLayer from 'ol/layer/Base';*/
-//import WMTS, {optionsFromCapabilities} from 'ol/source/WMTS';
-//import WMTSCapabilities from 'ol/format/WMTSCapabilities';
-//import proj4 from 'proj4';
-//import {OSM, TileImage, TileWMS} from 'ol/source';
-//import {getCenter, getWidth} from 'ol/extent';
-//import {get as getProjection} from 'ol/proj';
-
-
-//import {register} from 'ol/proj/proj4';
 
 import {
   BaseLayerName,
@@ -26,19 +15,26 @@ import {
   overlay_layers
 } from './base-layers.ts';
 
-/*
-import {
-  BaseLayerName,
-  base_layers,
-
-} from './base-layers.ts';
-*/
 
 import 'antd/dist/antd.css';
 import {Form} from 'antd';
 import {Select} from 'antd';
 const {Option} = Select;
 import { Row, Col } from 'antd';
+
+/*
+ *  NB: it is vitally important that the projections are defined before the layers, otherwise
+ *      you get: 
+ *
+ *      TypeError: Cannot read property 'getAxisOrientation' of null
+ *                 at optionsFromCapabilities (WMTS.js?d510:420)
+ *                 at eval (base-layers.ts?7d5f:144)
+ *
+ * .. in the line marked with sse-1607360049 in file ./base-layers.ts
+ *
+ *
+ */
+require('./register-projections.ts'); 
 
 
   
@@ -49,10 +45,6 @@ const DefaultLayer = {
   BASE    : BaseLayerName.OSM,
   OVERLAY : OverlayLayerName.BNG
 }
-
-/*const DEFAULT_BASE_LAYER    = 
-const DEFAULT_OVERLAY_LAYER = 
-*/
 
 
 export default class App extends React.Component<Props, LocalState> {

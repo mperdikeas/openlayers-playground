@@ -8,20 +8,6 @@ import Map from 'ol/Map';
 import TileLayer from 'ol/layer/Tile';
 import View from 'ol/View';
 
-import {
-  BaseLayerName,
-  base_layers,
-  OverlayLayerName,
-  overlay_layers
-} from './base-layers.ts';
-
-
-import 'antd/dist/antd.css';
-import {Form} from 'antd';
-import {Select} from 'antd';
-const {Option} = Select;
-import { Row, Col } from 'antd';
-
 /*
  *  NB: it is vitally important that the projections are defined before the layers, otherwise
  *      you get: 
@@ -32,9 +18,31 @@ import { Row, Col } from 'antd';
  *
  * .. in the line marked with sse-1607360049 in file ./base-layers.ts
  *
+ * NB2: also, and independently of the above problem, if you require the [register-projections.ts]
+ *      file (instead of importing it), this causes the [overlay_layers] to be defined *BEFORE*
+ *      the code in the [register-projections.ts] file gets executed and that messes up with the
+ *      Swiss overlay
  *
  */
-require('./register-projections.ts'); 
+//require( './register-projections.ts'); // <--- this messes up with the Swiss overlay
+
+import  './register-projections.ts';
+
+import {
+  BaseLayerName,
+  base_layers,
+  OverlayLayerName,
+  overlay_layers
+} from './layers.ts';
+
+
+import 'antd/dist/antd.css';
+import {Form} from 'antd';
+import {Select} from 'antd';
+const {Option} = Select;
+import { Row, Col } from 'antd';
+
+
 
 
   

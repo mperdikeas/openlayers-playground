@@ -4,7 +4,8 @@ import {throttle} from 'lodash';
 
 import 'ol/ol.css';
 import Map from 'ol/Map';
-
+import {get as getProjection} from 'ol/proj';
+import {getCenter} from 'ol/extent';
 import TileLayer from 'ol/layer/Tile';
 import View from 'ol/View';
 
@@ -21,12 +22,21 @@ import View from 'ol/View';
  * NB2: also, and independently of the above problem, if you require the [register-projections.ts]
  *      file (instead of importing it), this causes the [overlay_layers] to be defined *BEFORE*
  *      the code in the [register-projections.ts] file gets executed and that messes up with the
- *      Swiss overlay
+ *      Swiss overlay. Finally, note that the correct execution of the code rests on the assumption
+ *      that the code in [register-projections.ts] is executed *BEFORE* the code in [layers.ts]
+ *      According to my research this is not given as imported ES6 modules are loaded asynchronously
+ *      and the only guarantee provided is that the code of the imported modules gets executed before
+ *      the code of the module that imports them. However, it seems to work correctly on Chrome
+ *      so I'll leave it at that. Otherwise, i.e. in order to require no assumptions as to the 
+ *      execution order of the imported modules, the code would have to be written differently.
  *
  */
 //require( './register-projections.ts'); // <--- this messes up with the Swiss overlay
 
-import  './register-projections.ts';
+import {
+  CustomProjectionName,
+  ProjectionName
+} from  './register-projections.ts';
 
 import {
   BaseLayerName,
@@ -112,6 +122,26 @@ export default class App extends React.Component<Props, LocalState> {
 
   }
 
+  onChangeViewProjection = (value: ProjectionName) => {
+    var newProj = getProjection(value);
+    var newProjExtent = newProj.getExtent();
+    var newView = new View({
+      projection: newProj,
+      center: getCenter(newProjExtent || [0, 0, 0, 0]),
+      zoom: 0,
+      extent: newProjExtent || undefined,
+    });
+    this.map!.setView(newView);
+
+    // Example how to prevent double occurrence of map by limiting layer extent
+    if (newProj == getProjection('EPSG:3857')) {
+      overlay_layers.bng.setExtent([-1057216, 6405988, 404315, 8759696]);
+    } else {
+      overlay_layers.bng.setExtent(undefined);
+    }
+  }
+
+
   render = () => {
     return (
       <>
@@ -157,17 +187,21 @@ export default class App extends React.Component<Props, LocalState> {
           </Col>
           <Col span={8}>
             <Form.Item label='projection'>
-              <Select id="view-projection">
-                <Option value="EPSG:3857">Spherical Mercator (EPSG:3857)</Option>
-                <Option value="EPSG:4326">WGS 84 (EPSG:4326)</Option>
-                <Option value="ESRI:54009">Mollweide (ESRI:54009)</Option>
-                <Option value="EPSG:27700">British National Grid (EPSG:27700)</Option>
-                <Option value="EPSG:23032">ED50 / UTM zone 32N (EPSG:23032)</Option>
-                <Option value="EPSG:2163">US National Atlas Equal Area (EPSG:2163)</Option>
-                <Option value="EPSG:3413">NSIDC Polar Stereographic North (EPSG:3413)</Option>
-                <Option value="EPSG:5479">RSRGD2000 / MSLC2000 (EPSG:5479)</Option>
+              <Select id="view-projection"
+                      defaultValue={'EPSG:3857'}
+                      onChange={this.onChangeViewProjection}
+              >
+                <Option value={'EPSG:3857'}>Spherical Mercator (EPSG:3857)</Option>
+                <Option value={'EPSG:4326'}>WGS 84 (EPSG:4326)</Option>
+                <Option value={CustomProjectionName.EPSG_2100}> Hellenic Geodetic Reference System 1987</Option>
+                <Option value={CustomProjectionName.ESRI_54009}>Mollweide (ESRI:54009)</Option>
+                <Option value={CustomProjectionName.EPSG_27700}>British National Grid (EPSG:27700)</Option>
+                <Option value={CustomProjectionName.EPSG_23032}>ED50 / UTM zone 32N (EPSG:23032)</Option>
+                <Option value={CustomProjectionName.EPSG_2163}>US National Atlas Equal Area (EPSG:2163)</Option>
+                <Option value={CustomProjectionName.EPSG_3413}>NSIDC Polar Stereographic North (EPSG:3413)</Option>
+                <Option value={CustomProjectionName.EPSG_5479}>RSRGD2000 / MSLC2000 (EPSG:5479)</Option>
               </Select>
-            </Form.Item>
+           </Form.Item>
           </Col>
         </Row>
 

@@ -7,7 +7,9 @@ import Map from 'ol/Map';
 import {get as getProjection} from 'ol/proj';
 import {getCenter} from 'ol/extent';
 import TileLayer from 'ol/layer/Tile';
+import BaseLayer from 'ol/layer/Base';
 import View from 'ol/View';
+import {TileImage} from 'ol/source';
 
 /*
  *  NB: it is vitally important that the projections are defined before the layers, otherwise
@@ -47,21 +49,32 @@ import {
 
 
 import 'antd/dist/antd.css';
-import {Form} from 'antd';
-import {Select} from 'antd';
+import {
+  Form,
+  Select,
+  Checkbox,
+  Row,
+  Col
+} from 'antd';
 const {Option} = Select;
-import { Row, Col } from 'antd';
+import {CheckboxChangeEvent} from 'antd/es/checkbox';
+
 
 
 
 
   
 type Props = {}
-type LocalState = {height: number | undefined, width: number | undefined}
+type LocalState = {
+  height: number | undefined,
+  width: number | undefined,
+  renderEdges: boolean
+}
 
-const DefaultLayer = {
-  BASE    : BaseLayerName.OSM,
-  OVERLAY : OverlayLayerName.BNG
+const DefaultValue = {
+  BASE       : BaseLayerName.OSM,
+  OVERLAY    : OverlayLayerName.BNG,
+  PROJECTION : 'EPSG:3857' as 'EPSG:3857'
 }
 
 
@@ -69,7 +82,11 @@ export default class App extends React.Component<Props, LocalState> {
 
   constructor(props: Props) {
     super(props);
-    this.state =  {height: $(window).height(), width: $(window).width()};
+    this.state =  {
+      height: $(window).height(),
+      width: $(window).width(),
+      renderEdges: true
+    };
     this.updateScreenSize = throttle(this.updateScreenSize.bind(this), 1000);
   }
 
@@ -81,12 +98,13 @@ export default class App extends React.Component<Props, LocalState> {
     window.addEventListener('resize', this.updateScreenSize)
 
     this.createMap();
+    adjustExtentOfBritishNationalGrid(DefaultValue.PROJECTION)
   }
 
   createMap = () => {
 
     this.map = new Map({
-      layers: [base_layers[DefaultLayer.BASE], overlay_layers[DefaultLayer.OVERLAY]],
+      layers: [base_layers[DefaultValue.BASE], overlay_layers[DefaultValue.OVERLAY]],
       target: 'map',
       view: new View({
         projection: 'EPSG:3857',
@@ -98,6 +116,14 @@ export default class App extends React.Component<Props, LocalState> {
     console.log('map is created: ', this.map);
   }
 
+  updateRenderEdgesOnLayer = (layer: any) => {
+    if (layer instanceof TileLayer) {
+      var source = layer.getSource();
+      if (source instanceof TileImage) {
+        source.setRenderReprojectionEdges(this.state.renderEdges);
+      }
+    }
+  }
 
 
   updateScreenSize = () => {
@@ -109,6 +135,7 @@ export default class App extends React.Component<Props, LocalState> {
     var layer: TileLayer = base_layers[value];
     if (layer) {
       layer.setOpacity(1);
+      this.updateRenderEdgesOnLayer(layer);
       this.map!.getLayers().setAt(0, layer);
     }
   }
@@ -116,7 +143,8 @@ export default class App extends React.Component<Props, LocalState> {
   onChangeOverlayLayer = (value: OverlayLayerName) => {
     var layer: TileLayer = overlay_layers[value];
     if (layer) {
-      layer.setOpacity(1);
+      layer.setOpacity(0.7);
+      this.updateRenderEdgesOnLayer(layer);
       this.map!.getLayers().setAt(1, layer);
     }
 
@@ -133,22 +161,27 @@ export default class App extends React.Component<Props, LocalState> {
     });
     this.map!.setView(newView);
 
-    // Example how to prevent double occurrence of map by limiting layer extent
-    if (newProj == getProjection('EPSG:3857')) {
-      overlay_layers.bng.setExtent([-1057216, 6405988, 404315, 8759696]);
-    } else {
-      overlay_layers.bng.setExtent(undefined);
-    }
+
+    adjustExtentOfBritishNationalGrid(value);
+
   }
 
+
+  onChangeRenderEdges = (v: CheckboxChangeEvent) => {
+    console.log(`onChangeRenderEdges(${v.target.checked})`);
+    this.setState({renderEdges: v.target.checked});
+    setTimeout(()=>{
+      this.map!.getLayers().forEach((layer: BaseLayer) => {
+        this.updateRenderEdgesOnLayer(layer);
+      });
+    }, 0);
+  }
 
   render = () => {
     return (
       <>
         <div>
           <p>
-
-            
             Provenance: <a href='https://openlayers.org/en/latest/examples/reprojection.html'>https://openlayers.org/en/latest/examples/reprojection.html</a>
           </p>
           <p>
@@ -163,7 +196,7 @@ export default class App extends React.Component<Props, LocalState> {
           <Col span={8}>
             <Form.Item label='base layer'>
               <Select
-                defaultValue={DefaultLayer.BASE}
+                defaultValue={DefaultValue.BASE}
                 style={{width: '20em'}}
                 onChange={this.onChangeBaseLayer}
               >
@@ -175,7 +208,7 @@ export default class App extends React.Component<Props, LocalState> {
           <Col span={8}>
             <Form.Item label='overlay'>
               <Select
-                defaultValue={DefaultLayer.OVERLAY}
+                defaultValue={DefaultValue.OVERLAY}
                 onChange={this.onChangeOverlayLayer}
               >
                 <Option value={OverlayLayerName.BNG}>British National Grid (EPSG:27700)</Option>
@@ -188,7 +221,7 @@ export default class App extends React.Component<Props, LocalState> {
           <Col span={8}>
             <Form.Item label='projection'>
               <Select id="view-projection"
-                      defaultValue={'EPSG:3857'}
+                      defaultValue={DefaultValue.PROJECTION}
                       onChange={this.onChangeViewProjection}
               >
                 <Option value={'EPSG:3857'}>Spherical Mercator (EPSG:3857)</Option>
@@ -204,6 +237,11 @@ export default class App extends React.Component<Props, LocalState> {
            </Form.Item>
           </Col>
         </Row>
+        <Row>
+          <Col span={24}>
+            <Checkbox onChange={this.onChangeRenderEdges}>Render reproduction edges</Checkbox>
+          </Col>
+        </Row>
 
       </>
     );
@@ -211,3 +249,12 @@ export default class App extends React.Component<Props, LocalState> {
 }
 
 
+  // Example how to prevent double occurrence of map by limiting layer extent
+  // apparently we only need to do this for the Mercator projection
+  function adjustExtentOfBritishNationalGrid(projection: ProjectionName) {
+    if (projection === 'EPSG:3857') {
+      overlay_layers.bng.setExtent([-1057216, 6405988, 404315, 8759696]);
+    } else {
+      overlay_layers.bng.setExtent(undefined);
+    }
+  }

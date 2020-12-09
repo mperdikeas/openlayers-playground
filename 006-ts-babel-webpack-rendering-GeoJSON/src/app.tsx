@@ -7,7 +7,8 @@ import Map from 'ol/Map';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import View from 'ol/View';
-
+//@ts-expect-error TS7016: Could not find a declaration file for module 'ol-hashed'
+import sync from 'ol-hashed';
 
 
   
@@ -31,7 +32,7 @@ export default class App extends React.Component<Props, LocalState> {
   }
 
   createMap = () => {
-    new Map({
+    const m1 = new Map({
       target: 'map-container',
       layers: [
         new VectorLayer({
@@ -46,9 +47,9 @@ export default class App extends React.Component<Props, LocalState> {
         zoom: 2
       })
     });
+    sync(m1);
 
 
-    console.log('Countries is: ', Countries);
     new Map({
       target: 'map-container2',
       layers: [
@@ -63,7 +64,7 @@ export default class App extends React.Component<Props, LocalState> {
         center: [0, 0],
         zoom: 2
       })
-    });    
+    });
   }
 
 
@@ -76,7 +77,7 @@ export default class App extends React.Component<Props, LocalState> {
             Provenance: <a href='https://openlayers.org/workshop/en/vector/geojson.html'>https://openlayers.org/workshop/en/vector/geojson.html</a>
           </p>
         </div>
-        <h1>Map with VectorSource loaded over the Internet</h1>
+        <h1>Map with VectorSource loaded over the Internet (synced with the URL)</h1>
         <div id='map-container' style={{width: '100%'
                                       , height: '400px'
                                      ,  backgroundColor: '#04041b'}}>

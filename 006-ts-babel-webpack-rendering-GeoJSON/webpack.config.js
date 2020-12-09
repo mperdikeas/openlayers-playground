@@ -85,6 +85,16 @@ const config = {
                         }
                     },
                 ]
+            },{
+                test: /countries.geo.json/,
+                loader: 'file-loader',
+                /* the below is crucial otherwise one gets:
+                 * Module parse failed: Unexpected token m in JSON at position 0 while parsing near 'module.export
+                 *
+                 * cf. https://github.com/webpack-contrib/file-loader/issues/259
+                 */
+                type: 'javascript/auto',
+                exclude: /node_modules/
             }
         ]
     },

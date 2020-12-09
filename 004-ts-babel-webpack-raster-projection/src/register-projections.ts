@@ -64,6 +64,9 @@ proj4.defs(
 );
 register(proj4);
 
+const proj2100 = getProjection(CustomProjectionName.EPSG_2100);
+proj2100.setExtent([0, 3.7*1000*1000, 1.15*1000*1000, 4.68*1000*1000]);
+
 const proj27700 = getProjection(CustomProjectionName.EPSG_27700);
 proj27700.setExtent([0, 0, 700000, 1300000]);
 

@@ -1,0 +1,3 @@
+*** antd gotchas
+
+- sse-1602679177: the initialValues property in an Antd form has to be an object and not a straight-away array

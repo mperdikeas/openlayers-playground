@@ -3,7 +3,7 @@ import React from 'react';
 
 import 'ol/ol.css';
 
-
+import GeoJSON from 'ol/format/GeoJSON';
 import {fromLonLat} from 'ol/proj';
 import {Map, View} from 'ol';
 import {Vector as VectorLayer, Tile as TileLayer} from 'ol/layer';
@@ -36,6 +36,38 @@ export default class App extends React.Component<Props, LocalState> {
   }
 
   createMap = () => {
+
+    const source = new VectorSource();
+
+    const client = new XMLHttpRequest();
+    client.open('GET', '/meteorites.csv');
+    client.onload = function() {
+      const csv = client.responseText;
+      const features = [];
+
+      let prevIndex = csv.indexOf('\n') + 1; // scan past the header line
+
+      let curIndex;
+      while ((curIndex = csv.indexOf('\n', prevIndex)) != -1) {
+        const line = csv.substr(prevIndex, curIndex - prevIndex).split(',');
+        prevIndex = curIndex + 1;
+
+        const coords = fromLonLat([parseFloat(line[4]), parseFloat(line[3])]);
+        if (isNaN(coords[0]) || isNaN(coords[1])) {
+          // guard against bad data
+          continue;
+        }
+
+        features.push(new Feature({
+          mass: parseFloat(line[1]) || 0,
+          year: parseInt(line[2]) || 0,
+          geometry: new Point(coords)
+        }));
+      }
+      source.addFeatures(features);
+    };
+    client.send();
+
     new Map({
       target: 'map-container',
       layers: [
@@ -43,10 +75,18 @@ export default class App extends React.Component<Props, LocalState> {
           source: new Stamen({
             layer: 'toner'
           })
+          , opacity: 1
         }),
-/*        new VectorLayer({
+        new VectorLayer({
+          source: new VectorSource({
+            format: new GeoJSON(),
+            url: Countries as unknown as string // this is working but for some reason TypeScript complains
+          }),
+          opacity: 0.3
+        }),
+        new VectorLayer({
           source: source
-        })*/
+        })
       ],
       view: new View({
         center: [0, 0],
@@ -68,7 +108,6 @@ export default class App extends React.Component<Props, LocalState> {
 
         <div id='map-container' style={{width: '100%'
                                       , height: 'calc(100% - 3em)'
-                                      , backgroundColor: 'blue'
                                       , fontFamily: 'sans-serif'}}>
         </div>
 

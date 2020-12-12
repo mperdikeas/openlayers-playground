@@ -11,13 +11,42 @@ import {Vector as VectorSource, Stamen} from 'ol/source';
 import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
 import {Style, Fill, Stroke} from 'ol/style';
+import {StatusCodes} from 'http-status-codes';
+import {
+  AxiosResponse,
+  AxiosError
+} from 'axios';
+import _ from 'lodash';
 
-type Props = {}
-type LocalState = {}
+
 
 import Countries from '../countries.geo.json';
 
+import {axiosPlain} from './axios-setup.ts';
 
+
+
+function getResource<T>(url: string): Promise<T> {
+    const axiosCall = axiosPlain.get(url);        
+    return axiosCall.then( (res: AxiosResponse<T>):Promise<T> => {
+        const SUCCESS_CODES = [StatusCodes.OK];
+        if (!_.includes(SUCCESS_CODES, res.status)) {
+            const MSG = `[${URL}]: returned status code of ${res.status} is not `+
+                `among the ${SUCCESS_CODES.length} accepted status codes: ${SUCCESS_CODES}`;
+            console.error(MSG, res);
+            return Promise.reject(`invalid status: ${res.status}`);
+        } else {
+            return Promise.resolve(res.data);
+        }
+    }).catch( (err: AxiosError<any>): Promise<any> => {
+        console.error(err);
+        return Promise.reject(err);
+    });
+}
+
+
+type Props = {}
+type LocalState = {}
 
 
 export default class App extends React.Component<Props, LocalState> {
@@ -100,32 +129,47 @@ export default class App extends React.Component<Props, LocalState> {
 
 
 function populateSource(source: VectorSource) {
-  const client = new XMLHttpRequest();
-  client.open('GET', '/meteorites.csv');
-  client.onload = function() {
-    const csv = client.responseText;
-    const features = [];
+  const URL = '/meteorites.csv';
+  const use_axios = true; // both axios and plain XMLHttpRequest are working
+  if (use_axios) {
+    getResource<string>(URL)
+      .then( (res: string) =>{
+        parseCSVAndPopulateSource(res, source);
+      }).catch( (err: any) => {
+        throw err;
+      });
+  } else {
+    const client = new XMLHttpRequest();
+    client.open('GET', '/meteorites.csv');
+    client.onload = function() {
+      const csv = client.responseText;
+      parseCSVAndPopulateSource(csv, source);
+    };
+    client.send();
+  }
+}
 
-    let prevIndex = csv.indexOf('\n') + 1; // scan past the header line
+function parseCSVAndPopulateSource(csv: string, source: VectorSource) {
+  const features = [];
 
-    let curIndex;
-    while ((curIndex = csv.indexOf('\n', prevIndex)) != -1) {
-      const line = csv.substr(prevIndex, curIndex - prevIndex).split(',');
-      prevIndex = curIndex + 1;
+  let prevIndex = csv.indexOf('\n') + 1; // scan past the header line
 
-      const coords = fromLonLat([parseFloat(line[4]), parseFloat(line[3])]);
-      if (isNaN(coords[0]) || isNaN(coords[1])) {
-        // guard against bad data
-        continue;
-      }
+  let curIndex;
+  while ((curIndex = csv.indexOf('\n', prevIndex)) != -1) {
+    const line = csv.substr(prevIndex, curIndex - prevIndex).split(',');
+    prevIndex = curIndex + 1;
 
-      features.push(new Feature({
-        mass: parseFloat(line[1]) || 0,
-        year: parseInt(line[2]) || 0,
-        geometry: new Point(coords)
-      }));
+    const coords = fromLonLat([parseFloat(line[4]), parseFloat(line[3])]);
+    if (isNaN(coords[0]) || isNaN(coords[1])) {
+      // guard against bad data
+      continue;
     }
-    source.addFeatures(features);
-  };
-  client.send();
+
+    features.push(new Feature({
+      mass: parseFloat(line[1]) || 0,
+      year: parseInt(line[2]) || 0,
+      geometry: new Point(coords)
+    }));
+  }
+  source.addFeatures(features);
 }

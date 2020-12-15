@@ -1,8 +1,10 @@
 import React from 'react';
 
+import 'antd/dist/antd.css';
 import {Row, Col} from 'antd';
-import 'ol/ol.css';
 
+
+import 'ol/ol.css';
 import GeoJSON from 'ol/format/GeoJSON';
 import {fromLonLat} from 'ol/proj';
 import {Map, View} from 'ol';

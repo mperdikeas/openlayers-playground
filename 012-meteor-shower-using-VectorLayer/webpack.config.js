@@ -66,10 +66,10 @@ const config = {
                 use: 'babel-loader'
             },{
                 test:/\.css$/,
-                loader: 'css-loader'
+                use: ['style-loader', 'css-loader']
             },{
                 test:/\.scss$/,
-                loader: 'sass-loader'
+                use: ['style-loader', 'sass-loader']
             },{
                 test: /\.(png|jpg|jpeg|gif|woff)$/,
                 loader: 'url-loader',

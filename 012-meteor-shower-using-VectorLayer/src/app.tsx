@@ -1,7 +1,11 @@
 import React from 'react';
 
 import 'antd/dist/antd.css';
-import {Row, Col} from 'antd';
+import {
+  Row,
+  Col,
+  Button
+} from 'antd';
 
 
 import 'ol/ol.css';
@@ -59,11 +63,12 @@ export default class App extends React.Component<Props, LocalState> {
     this.state =  {}
   }
 
+  source: undefined | VectorSource;
 
   componentDidMount = () => {
-    const source = new VectorSource();
-    populateSource(source);
-    this.createMap(source);
+    this.source = new VectorSource();
+    populateSource(this.source);
+    this.createMap(this.source);
   }
 
   componentDidUpdate = (prevProps: Props, prevState: LocalState) => {
@@ -108,6 +113,15 @@ export default class App extends React.Component<Props, LocalState> {
     });
     console.log('map created');
   }
+
+  clear = () => {
+    console.log('clear');
+    this.source!.clear(true);
+  }
+
+  reload = () => {
+    populateSource(this.source!);
+  }
   
   render = () => {
     return (
@@ -120,7 +134,10 @@ export default class App extends React.Component<Props, LocalState> {
                 <a href='https://openlayers.org/workshop/en/webgl/meteorites.html'>https://openlayers.org/workshop/en/webgl/meteorites.html</a>
               </p>
             </Col>
-            <Col span={12}>populate buttons</Col>
+            <Col span={12}>
+              <Button danger onClick={this.clear}>clear</Button>
+              <Button onClick={this.reload}>reload</Button>
+            </Col>
             </Row>
 
         </div>
@@ -138,11 +155,11 @@ export default class App extends React.Component<Props, LocalState> {
 
 function populateSource(source: VectorSource) {
   const URL = '/meteorites.csv';
-  const use_axios = true; // both axios and plain XMLHttpRequest are working
+  const use_axios = Math.random()>0.5; // both axios and plain XMLHttpRequest are working
   if (use_axios) {
     getResource<string>(URL)
       .then( (res: string) =>{
-        parseCSVAndPopulateSource(res, source);
+        parseCSVAndPopulateSource(use_axios, res, source);
       }).catch( (err: any) => {
         throw err;
       });
@@ -151,23 +168,24 @@ function populateSource(source: VectorSource) {
     client.open('GET', '/meteorites.csv');
     client.onload = function() {
       const csv = client.responseText;
-      parseCSVAndPopulateSource(csv, source);
+      parseCSVAndPopulateSource(use_axios, csv, source);
     };
     client.send();
   }
 }
 
-function parseCSVAndPopulateSource(csv: string, source: VectorSource) {
+function parseCSVAndPopulateSource(use_axios: boolean, csv: string, source: VectorSource) {
   const features = [];
 
   let prevIndex = csv.indexOf('\n') + 1; // scan past the header line
 
   let curIndex;
+  let num_of_features = 0;
   while ((curIndex = csv.indexOf('\n', prevIndex)) != -1) {
     const line = csv.substr(prevIndex, curIndex - prevIndex).split(',');
     prevIndex = curIndex + 1;
-
-    const coords = fromLonLat([parseFloat(line[4]), parseFloat(line[3])]);
+    // add some random noise so that additional reloads do not perfectly overlap and thus can be visible
+    const coords = fromLonLat([parseFloat(line[4])+(Math.random()*2-1), parseFloat(line[3])+(Math.random()*2-1)]);
     if (isNaN(coords[0]) || isNaN(coords[1])) {
       // guard against bad data
       continue;
@@ -178,6 +196,8 @@ function parseCSVAndPopulateSource(csv: string, source: VectorSource) {
       year: parseInt(line[2]) || 0,
       geometry: new Point(coords)
     }));
+    num_of_features++;
   }
+  console.log(`${num_of_features} features loaded using ${use_axios?'Axios':'plain Ajax'}`);
   source.addFeatures(features);
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 
-
+import {Row, Col} from 'antd';
 import 'ol/ol.css';
 
 import GeoJSON from 'ol/format/GeoJSON';
@@ -111,10 +111,16 @@ export default class App extends React.Component<Props, LocalState> {
     return (
       <>
         <div>
-          <p>
-            Provenance:
-            <a href='https://openlayers.org/workshop/en/webgl/meteorites.html'>https://openlayers.org/workshop/en/webgl/meteorites.html</a>
-          </p>
+          <Row>
+            <Col span={12}>
+              <p>
+                Provenance:
+                <a href='https://openlayers.org/workshop/en/webgl/meteorites.html'>https://openlayers.org/workshop/en/webgl/meteorites.html</a>
+              </p>
+            </Col>
+            <Col span={12}>populate buttons</Col>
+            </Row>
+
         </div>
 
         <div id='map-container' style={{width: '100%'

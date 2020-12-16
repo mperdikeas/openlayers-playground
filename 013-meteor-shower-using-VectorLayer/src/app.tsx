@@ -4,8 +4,12 @@ import 'antd/dist/antd.css';
 import {
   Row,
   Col,
-  Button
+  Button,
+  Switch
 } from 'antd';
+
+//import {CheckboxChangeEvent} from 'antd/es/checkbox/Checkbox';
+
 
 
 import {SymbolType} from 'ol/style/LiteralStyle';
@@ -19,6 +23,7 @@ import {Vector as VectorSource, Stamen} from 'ol/source';
 import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
 import {Style, Fill, Stroke} from 'ol/style';
+import {LiteralStyle} from 'ol/style/LiteralStyle';
 import {StatusCodes} from 'http-status-codes';
 import {
   AxiosResponse,
@@ -54,7 +59,7 @@ function getResource<T>(url: string): Promise<T> {
 
 
 type Props = {}
-type LocalState = {}
+type LocalState = {fancy: boolean}
 
 
 export default class App extends React.Component<Props, LocalState> {
@@ -62,24 +67,39 @@ export default class App extends React.Component<Props, LocalState> {
 
   constructor(props: Props) {
     super(props);
-    this.state =  {}
+    this.state =  {fancy: false};
   }
 
-  source: undefined | VectorSource;
+  source    : undefined | VectorSource;
+  meteorites: undefined | WebGLPointsLayer;
+  map       : undefined | Map;
 
   componentDidMount = () => {
     this.source = new VectorSource();
     populateSource(this.source);
-    this.createMap(this.source);
+    this.map = this.createMap();
   }
 
   componentDidUpdate = (prevProps: Props, prevState: LocalState) => {
+    if (prevState.fancy !== this.state.fancy) {
+      this.meteorites = this.createMeteoritesLayer();
+      this.map!.getLayers().setAt(2, this.meteorites);
+    }
   }
 
-  createMap = (source: VectorSource) => {
+  createMeteoritesLayer = () => {
+    return new WebGLPointsLayer({
+      source: this.source,
+      style: this.state.fancy?style_fancy:style_plain
+    });
+  }
+
+  createMap = () => {
+
+    this.meteorites = this.createMeteoritesLayer()
 
 
-    new Map({
+    return new Map({
       target: 'map-container',
       layers: [
         new TileLayer({
@@ -104,32 +124,25 @@ export default class App extends React.Component<Props, LocalState> {
             })
           })
         }),
-        new WebGLPointsLayer({
-          source: source,
-          style: {
-            symbol: {
-              symbolType: SymbolType.SQUARE,
-              size: 10,
-              color: 'rgba(255,0,0,0.5)'
-            }
-          }
-        })
+        this.meteorites 
       ],
       view: new View({
         center: [0, 0],
         zoom: 2
       })
     });
-    console.log('map created');
   }
 
   clear = () => {
-    console.log('clear');
     this.source!.clear(true);
   }
 
   reload = () => {
     populateSource(this.source!);
+  }
+
+  onChangeStyle = (v: boolean) => {
+    this.setState({fancy: v});
   }
   
   render = () => {
@@ -141,11 +154,17 @@ export default class App extends React.Component<Props, LocalState> {
               <p>
                 Provenance:
                 <a href='https://openlayers.org/workshop/en/webgl/points.html'>https://openlayers.org/workshop/en/webgl/points.html</a>
+                <br/>
+                See also <a href='https://stackoverflow.com/q/65326034/274677'>https://stackoverflow.com/q/65326034/274677</a>
               </p>
             </Col>
             <Col span={12}>
               <Button danger onClick={this.clear}>clear</Button>
               <Button onClick={this.reload}>reload</Button>
+              <label>
+                fancy markers
+                <Switch checked={this.state.fancy} onChange={this.onChangeStyle}/>
+              </label>
             </Col>
             </Row>
 
@@ -210,3 +229,22 @@ function parseCSVAndPopulateSource(use_axios: boolean, csv: string, source: Vect
   console.log(`${num_of_features} features loaded using ${use_axios?'Axios':'plain Ajax'}`);
   source.addFeatures(features);
 }
+
+
+const style_plain: LiteralStyle = {
+  symbol: {
+    symbolType: SymbolType.SQUARE,
+    size: 10,
+    color: 'rgba(255,0,0,0.5)'
+  }
+};
+
+const style_fancy: LiteralStyle = {
+  symbol: {
+    symbolType: SymbolType.CIRCLE,
+    // equivalent to: 18 * clamp('mass' / 200000, 0, 1) + 8
+    size: ['+', ['*', ['clamp', ['*', ['get', 'mass'], 1/20000], 0, 1], 18], 8],
+    color: 'rgba(255,0,0,0.5)'
+  }
+};
+

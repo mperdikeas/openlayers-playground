@@ -34,6 +34,8 @@ const proj = getProjection(EPSG_2154);
 proj.setExtent([-378305.81, 6093283.21, 1212610.74, 7186901.68]);
 const extent = proj.getExtent();
 
+console.log('extent is: ', extent);
+
 
 
 
@@ -78,12 +80,14 @@ export default class App extends React.Component<Props, LocalState> {
         maxZoom: 14
       })
     });
-    
+
+    const center = getCenter(extent);
+    console.log('center is: ', center);
     const map = new Map({
       target: 'map-container',
       view: new View({
         projection: EPSG_2154,
-        center: getCenter(extent),
+        center,
         zoom: 2
       })
     });

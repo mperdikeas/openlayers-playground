@@ -1,0 +1,15 @@
+{
+    "presets": ["@babel/preset-env", "@babel/react"],
+    "compact" : false,
+    "env": {
+	"development": {
+	    "plugins": []
+	},
+	"test": {
+	    "plugins": []
+	},
+        "production":{
+            "plugins": []
+        }
+    }
+}

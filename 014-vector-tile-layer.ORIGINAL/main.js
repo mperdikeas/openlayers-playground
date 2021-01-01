@@ -30,6 +30,9 @@ console.log('extent is: ', extent);
 
 
 const key = '7A1r9pfPUNpumR1hzV0k';
+
+const tileGridOpts = {"extent": [0.0, 6000000.0, 1250000.0, 12000000.0], "minZoom": 0, "sizes": [[1, 1], [2, 2], [4, 4], [8, 8], [16, 16], [32, 32], [64, 64], [128, 128], [256, 256], [512, 512], [1024, 1024], [2048, 2048], [4096, 4096], [8192, 8192], [16384, 16384]], "tileSizes": [[512, 512], [512, 512], [512, 512], [512, 512], [512, 512], [512, 512], [512, 512], [512, 512], [512, 512], [512, 512], [512, 512], [512, 512], [512, 512], [512, 512], [512, 512]], "resolutions": [52289.612274947, 26144.8061374735, 13072.4030687368, 6536.2015343684, 3268.1007671842, 1634.0503835921, 817.02519179605, 408.512595898025, 204.256297949012, 102.128148974506, 51.064074487253, 25.5320372436265, 12.7660186218133, 6.38300931090665, 3.19150465545333]};
+
 const layer = new ol.layer.VectorTile({
     source: new ol.source.VectorTile({
         attributions: [
@@ -45,7 +48,8 @@ const layer = new ol.layer.VectorTile({
         projection: EPSG_2154,
         format: new ol.format.MVT(),
         url: `https://api.maptiler.com/tiles/v3-2154/{z}/{x}/{y}.pbf?key=${key}`,
-        maxZoom: 14
+        maxZoom: 14,
+        tileGrid: new ol.tilegrid.TileGrid(tileGridOpts)
     })
 });
 

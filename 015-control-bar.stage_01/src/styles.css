@@ -1,0 +1,13 @@
+.mainbar {
+    top: 0.5em;
+    left: 50%;
+}
+
+.select.ol-active{
+    border: 5px solid red;
+}
+
+.select {
+    top:0.5em;
+    right:50%;
+}

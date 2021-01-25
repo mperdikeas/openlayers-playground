@@ -68,15 +68,6 @@ export default class App extends React.Component<Props, LocalState> {
       {className: 'mainbar'});
     map.addControl(mainbar);
 
-    const editbar = new Bar(
-      // @ts-expect-error
-      {
-        toggleOne: true,
-        group:false
-    });
-    mainbar.addControl(editbar);
-
-
     var selectCtrl = new Toggle(
       // @ts-expect-error
       {	html: '<i class="fa fa-hand-pointer"></i>',
@@ -89,17 +80,8 @@ export default class App extends React.Component<Props, LocalState> {
 	}
     });
 
-    editbar.addControl(selectCtrl);
+    mainbar.addControl(selectCtrl);
 
-    /*
-       // Edit control bar
-       // @ts-expect-error (I know how to solve this)
-       const editbar = new Bar({
-       toggleOne: true,	// one control active at the same time
-       group:false	// group controls together
-       });
-       mainbar.addControl(editbar);
-     */
   }
 
   

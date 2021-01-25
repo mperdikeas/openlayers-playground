@@ -5,11 +5,18 @@ import {
   Map,
   View
 } from 'ol';
+
 import {
-  Polygon,
-//  GeometryType
-} from 'ol/geom'
+  //  GeometryFunction,
+  SketchCoordType,
+  PolyCoordType
+} from 'ol/interaction/Draw';
+
 import GeometryType from 'ol/geom/GeometryType';
+import {
+  SimpleGeometry,
+  Polygon
+} from 'ol/geom';
 import {
   Vector as VectorSource,
   OSM
@@ -26,6 +33,8 @@ import Bar    from 'ol-ext/control/Bar';
 import Toggle from 'ol-ext/control/Toggle';
 import TextButton from 'ol-ext/control/TextButton';
 
+
+import {is_PolyCoordType} from './util.ts';
 
 /* 
  * Provenance:
@@ -72,7 +81,10 @@ export default class App extends React.Component<Props, LocalState> {
     // Main control bar
     const mainbar = new Bar(
       //@ts-expect-error
-      {className: 'mainbar'});
+      {className: 'mainbar',
+       toggleOne: true,
+       group: false
+    });
     map.addControl(mainbar);
 
     /*    const editbar = new Bar(
@@ -84,7 +96,7 @@ export default class App extends React.Component<Props, LocalState> {
        mainbar.addControl(editbar);
      */
 
-    var selectCtrl = new Toggle(
+    const selectCtrl = new Toggle(
       // @ts-expect-error
       {	html: '<i class="fa fa-hand-pointer"></i>',
        className: "select",
@@ -100,21 +112,27 @@ export default class App extends React.Component<Props, LocalState> {
     const fedit = new Toggle(
       // @ts-expect-error
       {
-      html: '<i class="fa fa-bookmark fa-rotate-270" ></i>',
-      title: 'Polygon',
-      interaction: new Draw({
-        type: GeometryType.POLYGON,
-        source: vector.getSource(),
-        // Count inserted points
-        geometryFunction: function(coordinates, geometry) {
-          console.log('coordinates is: ', coordinates);
-          console.log('geometry is: ', geometry);
-          this.nbpts = coordinates[0].length;
-          if (geometry) geometry.setCoordinates([coordinates[0].concat([coordinates[0][0]])]);
-          else geometry = new Polygon(coordinates);
-          return geometry;
-        }
-      }),
+        html: '<i class="fa fa-bookmark fa-rotate-270" ></i>',
+        title: 'Polygon',
+        interaction: new Draw({
+          type: GeometryType.POLYGON,
+          source: vector.getSource(),
+          geometryFunction: function (coordinates: SketchCoordType, geometry: SimpleGeometry | undefined) {
+            console.log('coordinates is: ', coordinates);
+            if (is_PolyCoordType(coordinates)) {
+              const coordinates2: PolyCoordType = coordinates;
+              console.log('geometry is: ', geometry);
+              const num = coordinates2[0].length;
+              (this as unknown as {nbpts: number}).nbpts = num
+              console.log(`assigning number of points as: ${num}`);
+              if (geometry) geometry.setCoordinates(coordinates2)
+              else geometry = new Polygon(coordinates2);
+              return geometry;
+            } else
+              throw 'fubar';
+          }
+
+        }),
       // Options bar associated with the control
         bar: new Bar(
           // @ts-expect-error
@@ -126,9 +144,7 @@ export default class App extends React.Component<Props, LocalState> {
             html: 'undo',
             title: "undo last point",
               handleClick: function() {
-                //                (fedit.getInteraction() as Draw).removeLastPoint();
-                // @ts-expect-error
-                if (fedit.getInteraction().nbpts>1) fedit.getInteraction().removeLastPoint();
+                (fedit.getInteraction() as Draw).removeLastPoint();
             }
           }),
           new TextButton(
@@ -136,10 +152,14 @@ export default class App extends React.Component<Props, LocalState> {
             {
             html: 'finish',
             title: "finish",
-            handleClick: function() {
-              // Prevent null objects on finishDrawing
-              // @ts-expect-error
-              if (fedit.getInteraction().nbpts>3) fedit.getInteraction().finishDrawing();
+              handleClick: function() {
+                const num: number = (fedit.getInteraction() as unknown as {nbpts: number}).nbpts;
+                if (num >=4) {
+                  (fedit.getInteraction() as Draw).finishDrawing();
+                  console.log(`drawing finished: number of vectors is: ${vector.getSource().getFeatures().length}`);
+                } else {
+                  console.log(`insufficient number of points (${num}) to add polygon feature to layer`);
+                }
             }
           })
         ]
@@ -148,16 +168,6 @@ export default class App extends React.Component<Props, LocalState> {
 
     mainbar.addControl(selectCtrl);
     mainbar.addControl(fedit);
-
-    /*
-       // Edit control bar
-       // @ts-expect-error (I know how to solve this)
-       const editbar = new Bar({
-       toggleOne: true,	// one control active at the same time
-       group:false	// group controls together
-       });
-       mainbar.addControl(editbar);
-     */
   }
 
   

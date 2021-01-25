@@ -1,10 +1,10 @@
 .mainbar {
-    top: 0.5em;
+    top: 50em;
     left: 50%;
 }
 
 .select.ol-active{
-    border: 5px solid red;
+    /* don't style it (yet) */
 }
 
 .select {

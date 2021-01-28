@@ -27,7 +27,8 @@ import {
 } from 'ol/layer';
 import {
   Select,
-  Draw
+  Draw,
+  Snap
 } from 'ol/interaction';
 import Bar    from 'ol-ext/control/Bar';
 import Toggle from 'ol-ext/control/Toggle';
@@ -77,6 +78,12 @@ export default class App extends React.Component<Props, LocalState> {
         vector
       ]
     });
+
+
+    map.addInteraction(new Snap({
+      source: vector.getSource()
+    }));
+
 
     // Main control bar
     const mainbar = new Bar(

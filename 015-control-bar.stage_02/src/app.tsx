@@ -42,6 +42,7 @@ import {is_PolyCoordType} from './util.ts';
  * 
  *     https://viglino.github.io/ol-ext/examples/bar/map.control.editionbar.html
  *     https://viglino.github.io/ol-ext/examples/bar/map.control.toggle.html
+ *     https://gis.stackexchange.com/q/385340/158056
  *
  */
 
@@ -132,7 +133,17 @@ export default class App extends React.Component<Props, LocalState> {
               const num = coordinates2[0].length;
               (this as unknown as {nbpts: number}).nbpts = num
               console.log(`assigning number of points as: ${num}`);
-              if (geometry) geometry.setCoordinates(coordinates2)
+              /*
+               * I was initially under the impression that the concatenation used in the live code 
+               * below was not necessary the below simpler line of code worked equally well:
+               *
+               *     if (geometry) geometry.setCoordinates(coordinates2)
+               * 
+               * However, in late January 2021 I realized that this is not so and that the concatenation
+               * is indeed necessary to properly close the polygon.
+               *
+               */
+              if (geometry) geometry.setCoordinates([coordinates2[0].concat([coordinates[0][0]])]);
               else geometry = new Polygon(coordinates2);
               return geometry;
             } else
@@ -186,6 +197,7 @@ export default class App extends React.Component<Props, LocalState> {
           <ul>
             <li><a href='https://viglino.github.io/ol-ext/examples/bar/map.control.editionbar.html'>https://viglino.github.io/ol-ext/examples/bar/map.control.editionbar.html</a></li>
             <li><a href='https://viglino.github.io/ol-ext/examples/bar/map.control.toggle.html'>https://viglino.github.io/ol-ext/examples/bar/map.control.toggle.html</a></li>
+            <li><a href='https://gis.stackexchange.com/q/385340/158056'>https://gis.stackexchange.com/q/385340/158056</a></li>
           </ul>
         </div>
         <div id='map-container'>

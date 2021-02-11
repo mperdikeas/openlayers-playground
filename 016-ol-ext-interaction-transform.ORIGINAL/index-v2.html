@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<!--
+  Copyright (c) 2016-2018 Jean-Marc VIGLINO, 
+  released under CeCILL-B (french BSD like) licence: http://www.cecill.info/
+-->
+  <title>ol-ext: Transform interaction</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+  <meta name="description" content="transform interaction for OL3" />
+  <meta name="keywords" content="ol, openlayers, vector, transform, rotate, scale, stretch" />
+
+
+  <!-- jQuery -->
+  <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  <!-- Openlayers -->
+  <link rel="stylesheet" href="https://openlayers.org/en/latest/css/ol.css" />
+  <script type="text/javascript" src="https://openlayers.org/en/latest/build/ol.js"></script>
+  <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL,Object.assign"></script>
+  
+  <!-- ol-ext -->
+  <link rel="stylesheet" href="./ol-ext.css" />
+  <script type="text/javascript" src="./ol-ext.js"></script>
+
+
+</head>
+<body >
+  <!-- Map div -->
+  <div id="map" style="width:600px; height:400px;"></div>
+
+  
+
+  <script type="text/javascript">
+    // Layers
+    var layers = [
+      new ol.layer.Tile({ 
+        title:'terrain-background',
+        source: new ol.source.Stamen({ layer: 'terrain' })
+      })
+    ]
+    // The map
+    var map = new ol.Map({
+      target: 'map',
+        view: new ol.View({
+          zoom: 5,
+          center: [261720, 5951081]
+        }),
+        controls: ol.control.defaults({ "attribution": false }),
+        layers: layers
+      });
+
+    // New vector layer
+    var vector = new ol.layer.Vector({
+      name: 'Vecteur',
+      source: new ol.source.Vector({ wrapX: false })
+    })
+    map.addLayer(vector);
+    vector.getSource().addFeature(new ol.Feature(new ol.geom.Polygon([[[34243, 6305749], [-288626, 5757848], [210354, 5576845], [300000, 6000000], [34243, 6305749]]])));
+
+    /** Style the transform handles for the current interaction
+    */
+    function setHandleStyle(){
+      if (!interaction instanceof ol.interaction.Transform) return;
+
+      // Style the rotate handle
+      var circle = new ol.style.RegularShape({
+        fill: new ol.style.Fill({color:[255,255,255,0.01]}),
+        stroke: new ol.style.Stroke({width:1, color:[0,0,0,0.01]}),
+        radius: 8,
+        points: 10
+      });
+      interaction.setStyle ('rotate',
+                            new ol.style.Style({
+                              text: new ol.style.Text ({
+                                text:'\uf0e2', 
+                                font:"16px Fontawesome",
+                                textAlign: "left",
+                                fill:new ol.style.Fill({color:'red'})
+                              }),
+                              image: circle
+      }));
+      // Center of rotation
+      interaction.setStyle ('rotate0',
+                            new ol.style.Style({
+                              text: new ol.style.Text ({
+                                text: '\uf0e2', 
+                                font:"20px Fontawesome",
+                                fill: new ol.style.Fill({ color:[255,255,255,0.8] }),
+                                stroke: new ol.style.Stroke({ width:2, color:'red' })
+                              }),
+      }));
+      // Style the move handle
+      interaction.setStyle('translate',
+                           new ol.style.Style({
+                             text: new ol.style.Text ({
+                               text: '\uf047', 
+                               font:"20px Fontawesome", 
+                               fill: new ol.style.Fill({ color:[255,255,255,0.8] }),
+                               stroke: new ol.style.Stroke({ width:2, color:'red' })
+                             })
+      }));
+
+
+      // Refresh
+      interaction.set('translate', interaction.get('translate'));
+    };
+
+    /** Set properties
+    */
+    function setPropertie (p) {
+      interaction.set(p, $("#"+p).prop('checked'));
+      if (!$("#scale").prop("checked")) $("#stretch").prop('disabled', true);
+      else $("#stretch").prop('disabled', false);
+    }
+
+    function setAspectRatio (p) {
+      if ($("#"+p).prop('checked')) interaction.set("keepAspectRatio", ol.events.condition.always);
+      else interaction.set("keepAspectRatio", function(e){ return e.originalEvent.shiftKey });
+    }
+
+    var interaction = new ol.interaction.Transform ({
+      enableRotatedTransform: false,
+      addCondition: ol.events.condition.shiftKeyOnly,
+      hitTolerance: 2,
+      translateFeature: false,// $("#translateFeature").prop('checked'),
+      scale: true,
+      rotate: true,
+      keepAspectRatio: ol.events.condition.always,
+      translate: true,
+      stretch: true
+    });
+    map.addInteraction(interaction);
+    // Style handles
+    setHandleStyle();
+
+   
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,3 @@
+wget https://viglino.github.io/ol-ext/examples/interaction/map.interaction.transform.html -O index.html
+
+... with a slight change in the two paths to ol-ext js and css.
